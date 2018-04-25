@@ -413,7 +413,7 @@ public:
     max_acceleration_scaling_factor_ = max_acceleration_scaling_factor;
   }
 
-  robot_state::RobotState& getJointStateTarget()
+  robot_state::RobotState& getTargetRobotState()
   {
     return *joint_state_target_;
   }
@@ -453,8 +453,8 @@ public:
       {
         setTargetType(JOINT);
         c->enforceBounds();
-        getJointStateTarget() = *c;
-        if (!getJointStateTarget().satisfiesBounds(getGoalJointTolerance()))
+        getTargetRobotState() = *c;
+        if (!getTargetRobotState().satisfiesBounds(getGoalJointTolerance()))
           return false;
       }
       else
@@ -466,17 +466,17 @@ public:
 
       // if no frame transforms are needed, call IK directly
       if (frame.empty() || moveit::core::Transforms::sameFrame(frame, getRobotModel()->getModelFrame()))
-        return getJointStateTarget().setFromIK(getJointModelGroup(), eef_pose, eef, 0, 0.0,
+        return getTargetRobotState().setFromIK(getJointModelGroup(), eef_pose, eef, 0, 0.0,
                                                moveit::core::GroupStateValidityCallbackFn(), o);
       else
       {
         if (c->knowsFrameTransform(frame))
         {
           // transform the pose first if possible, then do IK
-          const Eigen::Affine3d& t = getJointStateTarget().getFrameTransform(frame);
+          const Eigen::Affine3d& t = getTargetRobotState().getFrameTransform(frame);
           Eigen::Affine3d p;
           tf::poseMsgToEigen(eef_pose, p);
-          return getJointStateTarget().setFromIK(getJointModelGroup(), t * p, eef, 0, 0.0,
+          return getTargetRobotState().setFromIK(getJointModelGroup(), t * p, eef, 0, 0.0,
                                                  moveit::core::GroupStateValidityCallbackFn(), o);
         }
         else
@@ -1113,7 +1113,7 @@ public:
     {
       request.goal_constraints.resize(1);
       request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(
-          getJointStateTarget(), joint_model_group_, goal_joint_tolerance_);
+          getTargetRobotState(), joint_model_group_, goal_joint_tolerance_);
     }
     else if (active_target_ == POSE || active_target_ == POSITION || active_target_ == ORIENTATION)
     {
@@ -1627,7 +1627,7 @@ void moveit::planning_interface::MoveGroupInterface::setStartStateToCurrentState
 
 void moveit::planning_interface::MoveGroupInterface::setRandomTarget()
 {
-  impl_->getJointStateTarget().setToRandomPositions();
+  impl_->getTargetRobotState().setToRandomPositions();
   impl_->setTargetType(JOINT);
 }
 
@@ -1671,7 +1671,7 @@ bool moveit::planning_interface::MoveGroupInterface::setNamedTarget(const std::s
   }
   else
   {
-    if (impl_->getJointStateTarget().setToDefaultValues(impl_->getJointModelGroup(), name))
+    if (impl_->getTargetRobotState().setToDefaultValues(impl_->getJointModelGroup(), name))
     {
       impl_->setTargetType(JOINT);
       return true;
@@ -1684,7 +1684,7 @@ bool moveit::planning_interface::MoveGroupInterface::setNamedTarget(const std::s
 void moveit::planning_interface::MoveGroupInterface::getJointValueTarget(
     std::vector<double>& group_variable_values) const
 {
-  impl_->getJointStateTarget().copyJointGroupPositions(impl_->getJointModelGroup(), group_variable_values);
+  impl_->getTargetRobotState().copyJointGroupPositions(impl_->getJointModelGroup(), group_variable_values);
 }
 
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const std::vector<double>& joint_values)
@@ -1692,23 +1692,23 @@ bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const s
   if (joint_values.size() != impl_->getJointModelGroup()->getVariableCount())
     return false;
   impl_->setTargetType(JOINT);
-  impl_->getJointStateTarget().setJointGroupPositions(impl_->getJointModelGroup(), joint_values);
-  return impl_->getJointStateTarget().satisfiesBounds(impl_->getJointModelGroup(), impl_->getGoalJointTolerance());
+  impl_->getTargetRobotState().setJointGroupPositions(impl_->getJointModelGroup(), joint_values);
+  return impl_->getTargetRobotState().satisfiesBounds(impl_->getJointModelGroup(), impl_->getGoalJointTolerance());
 }
 
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(
     const std::map<std::string, double>& joint_values)
 {
   impl_->setTargetType(JOINT);
-  impl_->getJointStateTarget().setVariablePositions(joint_values);
-  return impl_->getJointStateTarget().satisfiesBounds(impl_->getGoalJointTolerance());
+  impl_->getTargetRobotState().setVariablePositions(joint_values);
+  return impl_->getTargetRobotState().satisfiesBounds(impl_->getGoalJointTolerance());
 }
 
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const robot_state::RobotState& rstate)
 {
   impl_->setTargetType(JOINT);
-  impl_->getJointStateTarget() = rstate;
-  return impl_->getJointStateTarget().satisfiesBounds(impl_->getGoalJointTolerance());
+  impl_->getTargetRobotState() = rstate;
+  return impl_->getTargetRobotState().satisfiesBounds(impl_->getGoalJointTolerance());
 }
 
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const std::string& joint_name, double value)
@@ -1721,11 +1721,11 @@ bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const s
                                                                          const std::vector<double>& values)
 {
   impl_->setTargetType(JOINT);
-  const robot_model::JointModel* jm = impl_->getJointStateTarget().getJointModel(joint_name);
+  const robot_model::JointModel* jm = impl_->getTargetRobotState().getJointModel(joint_name);
   if (jm && jm->getVariableCount() == values.size())
   {
-    impl_->getJointStateTarget().setJointPositions(jm, values);
-    return impl_->getJointStateTarget().satisfiesBounds(jm, impl_->getGoalJointTolerance());
+    impl_->getTargetRobotState().setJointPositions(jm, values);
+    return impl_->getTargetRobotState().satisfiesBounds(jm, impl_->getGoalJointTolerance());
   }
   return false;
 }
@@ -1733,8 +1733,8 @@ bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const s
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const sensor_msgs::JointState& state)
 {
   impl_->setTargetType(JOINT);
-  impl_->getJointStateTarget().setVariableValues(state);
-  return impl_->getJointStateTarget().satisfiesBounds(impl_->getGoalJointTolerance());
+  impl_->getTargetRobotState().setVariableValues(state);
+  return impl_->getTargetRobotState().satisfiesBounds(impl_->getGoalJointTolerance());
 }
 
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const geometry_msgs::Pose& eef_pose,
@@ -1779,12 +1779,12 @@ bool moveit::planning_interface::MoveGroupInterface::setApproximateJointValueTar
 
 const robot_state::RobotState& moveit::planning_interface::MoveGroupInterface::getJointValueTarget() const
 {
-  return impl_->getJointStateTarget();
+  return impl_->getTargetRobotState();
 }
 
 const robot_state::RobotState& moveit::planning_interface::MoveGroupInterface::getTargetRobotState() const
 {
-  return impl_->getJointStateTarget();
+  return impl_->getTargetRobotState();
 }
 
 const std::string& moveit::planning_interface::MoveGroupInterface::getEndEffectorLink() const
@@ -2071,7 +2071,7 @@ std::vector<double> moveit::planning_interface::MoveGroupInterface::getCurrentJo
 std::vector<double> moveit::planning_interface::MoveGroupInterface::getRandomJointValues()
 {
   std::vector<double> r;
-  impl_->getJointModelGroup()->getVariableRandomPositions(impl_->getJointStateTarget().getRandomNumberGenerator(), r);
+  impl_->getJointModelGroup()->getVariableRandomPositions(impl_->getTargetRobotState().getRandomNumberGenerator(), r);
   return r;
 }
 
