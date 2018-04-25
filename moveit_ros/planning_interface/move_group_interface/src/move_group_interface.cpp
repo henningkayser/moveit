@@ -1782,6 +1782,11 @@ const robot_state::RobotState& moveit::planning_interface::MoveGroupInterface::g
   return impl_->getJointStateTarget();
 }
 
+const robot_state::RobotState& moveit::planning_interface::MoveGroupInterface::getTargetRobotState() const
+{
+  return impl_->getJointStateTarget();
+}
+
 const std::string& moveit::planning_interface::MoveGroupInterface::getEndEffectorLink() const
 {
   return impl_->getEndEffectorLink();
