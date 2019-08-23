@@ -47,6 +47,51 @@
 
 namespace ompl_interface
 {
+class MultiQueryPlannerAllocator
+{
+  public:
+    template <typename T>
+      ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr& si, const std::string& new_name,
+          const ModelBasedPlanningContextSpecification& spec)
+      {
+        // Store planner instance if multi-query planning is enabled
+        auto cfg = spec.config_;
+        const auto& it = cfg.find("multi_query_planning_enabled");
+        bool multi_query_planning_enabled = false;
+        if (it != cfg.end())
+        {
+          multi_query_planning_enabled = boost::lexical_cast<bool>(it->second);
+          cfg.erase(it);
+        }
+
+        if (multi_query_planning_enabled)
+        {
+          if (planners_.count(new_name) == 0)
+            planners_[new_name] = allocatePlannerImpl<T>(si, new_name, spec);
+          return planners_.at(new_name);
+        }
+        else
+        {
+          return allocatePlannerImpl<T>(si, new_name, spec);
+        }
+      }
+
+    private:
+    template <typename T>
+      ompl::base::PlannerPtr allocatePlannerImpl(const ob::SpaceInformationPtr& si, const std::string& new_name,
+          const ModelBasedPlanningContextSpecification& spec)
+      {
+        ompl::base::PlannerPtr planner(new T(si));
+        if (!new_name.empty())
+          planner->setName(new_name);
+        planner->params().setParams(spec.config_, true);
+        planner->setup();
+        return planner;
+      }
+
+    // storing multi-query planners
+    std::map<std::string, ob::PlannerPtr> planners_;
+};
 class PlanningContextManager
 {
 public:
@@ -222,6 +267,9 @@ protected:
   /// the minimum number of points to include on the solution path (interpolation is used to reach this number, if
   /// needed)
   unsigned int minimum_waypoint_count_;
+
+  /// Multi-query planner allocator
+  MultiQueryPlannerAllocator planner_allocator_;
 
 private:
   MOVEIT_STRUCT_FORWARD(CachedContexts);
