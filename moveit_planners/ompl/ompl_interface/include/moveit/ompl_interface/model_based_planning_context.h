@@ -375,6 +375,9 @@ protected:
 
   bool use_state_validity_cache_;
 
+  /// clears planners that don't support multi-query use before running solve()
+  bool multi_query_planning_enabled_;
+
   bool simplify_solutions_;
 };
 }  // namespace ompl_interface
