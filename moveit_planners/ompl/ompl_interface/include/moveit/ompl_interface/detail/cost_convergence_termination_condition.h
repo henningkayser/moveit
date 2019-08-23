@@ -51,11 +51,11 @@ public:
 
   // Compute the running average cost of the last solutions (solution_window) and terminate if the cost of a
   // new solution is higher than convergence_threshold times the average cost.
-  void processNewSolution(const std::vector<const ob::State*>& solution_states, const ob::Cost solution_cost)
+  void processNewSolution(const std::vector<const ob::State*>& solution_states, double solution_cost)
   {
     ++solutions_;
     size_t solutions = std::min(solutions_, solutions_window_);
-    double new_cost = ((solutions - 1) * average_cost_ + solution_cost.value()) / solutions;
+    double new_cost = ((solutions - 1) * average_cost_ + solution_cost) / solutions;
     double cost_ratio = new_cost / average_cost_;
     average_cost_ = new_cost;
     if (solutions == solutions_window_ && cost_ratio > convergence_threshold_)

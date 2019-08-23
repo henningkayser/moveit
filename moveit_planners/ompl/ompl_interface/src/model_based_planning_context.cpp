@@ -315,6 +315,11 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
 
   ompl_simple_setup_->setOptimizationObjective(objective);
 
+  // Don't clear planner data if multi-query planning is enabled
+  it = cfg.find("multi_query_planning_enabled");
+  if (it != cfg.end())
+    multi_query_planning_enabled_ = boost::lexical_cast<bool>(it->second);
+
   // remove the 'type' parameter; the rest are parameters for the planner itself
   it = cfg.find("type");
   if (it == cfg.end())
@@ -327,8 +332,9 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   {
     std::string type = it->second;
     cfg.erase(it);
+    const std::string planner_name = getGroupName() + "/" + name_;
     ompl_simple_setup_->setPlannerAllocator(std::bind(spec_.planner_selector_(type), std::placeholders::_1,
-                                                      name_ != getGroupName() ? name_ : "", std::cref(spec_)));
+                                                      planner_name, std::cref(spec_)));
     ROS_INFO_NAMED("model_based_planning_context",
                    "Planner configuration '%s' will use planner '%s'. "
                    "Additional configuration parameters will be set when the planner is constructed.",
@@ -453,7 +459,8 @@ void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(
 
 void ompl_interface::ModelBasedPlanningContext::clear()
 {
-  ompl_simple_setup_->clear();
+  if (!multi_query_planning_enabled_)
+    ompl_simple_setup_->clear();
   ompl_simple_setup_->clearStartStates();
   ompl_simple_setup_->setGoal(ob::GoalPtr());
   ompl_simple_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr());
@@ -546,7 +553,7 @@ void ompl_interface::ModelBasedPlanningContext::preSolve()
   // clear previously computed solutions
   ompl_simple_setup_->getProblemDefinition()->clearSolutionPaths();
   const ob::PlannerPtr planner = ompl_simple_setup_->getPlanner();
-  if (planner)
+  if (planner && !multi_query_planning_enabled_)
     planner->clear();
   startSampling();
   ompl_simple_setup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
@@ -650,11 +657,11 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   std::shared_ptr<CostConvergenceTerminationCondition> cctc = std::make_shared<CostConvergenceTerminationCondition>();
   ompl_simple_setup_->getProblemDefinition()->setIntermediateSolutionCallback(
       [cctc](const ob::Planner* planner, const std::vector<const ob::State*>& states, const ob::Cost cost) {
-        cctc->processNewSolution(states, cost);
+        cctc->processNewSolution(states, cost.value());
       });
 
   bool result = false;
-  if (count <= 1)
+  if (count <= 1 || multi_query_planning_enabled_)  // multi-query planners should always run in single instances
   {
     ROS_DEBUG_NAMED("model_based_planning_context", "%s: Solving the planning problem once...", name_.c_str());
     ob::PlannerTerminationCondition ptc =
