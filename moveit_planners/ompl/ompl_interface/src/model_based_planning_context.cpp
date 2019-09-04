@@ -333,8 +333,8 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     std::string type = it->second;
     cfg.erase(it);
     const std::string planner_name = getGroupName() + "/" + name_;
-    ompl_simple_setup_->setPlannerAllocator(std::bind(spec_.planner_selector_(type), std::placeholders::_1,
-                                                      planner_name, std::cref(spec_)));
+    ompl_simple_setup_->setPlannerAllocator(
+        std::bind(spec_.planner_selector_(type), std::placeholders::_1, planner_name, std::cref(spec_)));
     ROS_INFO_NAMED("model_based_planning_context",
                    "Planner configuration '%s' will use planner '%s'. "
                    "Additional configuration parameters will be set when the planner is constructed.",
