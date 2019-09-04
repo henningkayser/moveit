@@ -38,8 +38,10 @@
 
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/ompl_interface/parameterization/model_based_state_space_factory.h>
+#include <moveit/ompl_interface/detail/persisting_prm_planners.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/macros/class_forward.h>
+#include <ompl/base/PlannerDataStorage.h>
 
 #include <vector>
 #include <string>
@@ -49,48 +51,95 @@ namespace ompl_interface
 {
 class MultiQueryPlannerAllocator
 {
-  public:
-    template <typename T>
-      ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec)
+public:
+  ~MultiQueryPlannerAllocator()
+  {
+    // Store all planner data
+    for (const auto& entry : planner_data_storage_paths_)
+    {
+      ROS_ERROR("Storing planner data");
+      ompl::base::PlannerData data(planners_[entry.first]->getSpaceInformation());
+      planners_[entry.first]->getPlannerData(data);
+      storage_.store(data, entry.second.c_str());
+    }
+  }
+
+  template <typename T>
+  ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr& si, const std::string& new_name,
+                                         const ModelBasedPlanningContextSpecification& spec)
+  {
+    // Store planner instance if multi-query planning is enabled
+    auto cfg = spec.config_;
+    auto it = cfg.find("multi_query_planning_enabled");
+    bool multi_query_planning_enabled = false;
+    if (it != cfg.end())
+    {
+      multi_query_planning_enabled = boost::lexical_cast<bool>(it->second);
+      cfg.erase(it);
+    }
+    if (multi_query_planning_enabled)
+    {
+      // If we already have an instance, use that one
+      if (planners_.count(new_name))
+        return planners_.at(new_name);
+
+      it = cfg.find("store_planner_data");
+      bool store_planner_data = false;
+      if (it != cfg.end())
       {
-        // Store planner instance if multi-query planning is enabled
-        auto cfg = spec.config_;
-        const auto& it = cfg.find("multi_query_planning_enabled");
-        bool multi_query_planning_enabled = false;
-        if (it != cfg.end())
-        {
-          multi_query_planning_enabled = boost::lexical_cast<bool>(it->second);
-          cfg.erase(it);
-        }
-
-        if (multi_query_planning_enabled)
-        {
-          if (planners_.count(new_name) == 0)
-            planners_[new_name] = allocatePlannerImpl<T>(si, new_name, spec);
-          return planners_.at(new_name);
-        }
-        else
-        {
-          return allocatePlannerImpl<T>(si, new_name, spec);
-        }
+        store_planner_data = boost::lexical_cast<bool>(it->second);
+        cfg.erase(it);
       }
-
-    private:
-    template <typename T>
-      ompl::base::PlannerPtr allocatePlannerImpl(const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec)
+      it = cfg.find("store_planner_data_path");
+      std::string store_planner_data_path;
+      if (it != cfg.end())
       {
-        ompl::base::PlannerPtr planner(new T(si));
-        if (!new_name.empty())
-          planner->setName(new_name);
-        planner->params().setParams(spec.config_, true);
-        planner->setup();
-        return planner;
+        store_planner_data_path = it->second;
+        cfg.erase(it);
       }
+      planners_[new_name] = allocatePlannerImpl<T>(si, new_name, spec, store_planner_data, store_planner_data_path);
+      return planners_[new_name];
+    }
+    else
+    {
+      return allocatePlannerImpl<T>(si, new_name, spec);
+    }
+  }
 
-    // storing multi-query planners
-    std::map<std::string, ob::PlannerPtr> planners_;
+private:
+  template <typename T>
+  ompl::base::PlannerPtr allocatePlannerImpl(const ob::SpaceInformationPtr& si, const std::string& new_name,
+                                             const ModelBasedPlanningContextSpecification& spec,
+                                             bool load_planner_data = false, const std::string& file_path = "")
+  {
+    ompl::base::PlannerPtr planner;
+    // Try to initialize planner with stored planner data
+    if (load_planner_data)
+    {
+      ROS_ERROR("Loading planner data");
+      ompl::base::PlannerData data(si);
+      storage_.load(file_path.c_str(), data);
+      planner.reset(allocatePersistingPlanner<T>(data));
+      if (planner)
+        planner_data_storage_paths_[new_name] = file_path;
+    }
+    if (!planner)
+      planner.reset(new T(si));
+    if (!new_name.empty())
+      planner->setName(new_name);
+    planner->params().setParams(spec.config_, true);
+    planner->setProblemDefinition(std::make_shared<ob::ProblemDefinition>(si));
+    planner->setup();
+    return planner;
+  }
+
+  // storing multi-query planners
+  std::map<std::string, ob::PlannerPtr> planners_;
+
+  std::map<std::string, std::string> planner_data_storage_paths_;
+
+  // Store and load planner data
+  ob::PlannerDataStorage storage_;
 };
 class PlanningContextManager
 {

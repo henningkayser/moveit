@@ -67,6 +67,7 @@
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
+#include <moveit/ompl_interface/detail/persisting_prm_planners.h>
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
@@ -138,99 +139,171 @@ void ompl_interface::PlanningContextManager::registerDefaultPlanners()
   registerPlannerAllocator(  //
       "geometric::RRT",      //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::RRT>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::RRT>(si, new_name, spec);
+      });
   registerPlannerAllocator(     //
       "geometric::RRTConnect",  //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::RRTConnect>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::RRTConnect>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::LazyRRT",  //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::LazyPRM>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::LazyPRM>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::TRRT",     //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::TRRT>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::TRRT>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::EST",      //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::EST>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::EST>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::SBL",      //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::SBL>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::SBL>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::KPIECE",   //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::KPIECE1>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::KPIECE1>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::BKPIECE",  //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::BKPIECE1>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::BKPIECE1>(si, new_name, spec);
+      });
   registerPlannerAllocator(   //
       "geometric::LBKPIECE",  //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::LBKPIECE1>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::LBKPIECE1>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::RRTstar",  //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::RRTstar>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::RRTstar>(si, new_name, spec);
+      });
+  registerPlannerAllocator(     //
+      "geometric::PRMPersist",  //
+      [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::PRMPersist>(si, new_name, spec);
+      });
+  registerPlannerAllocator(         //
+      "geometric::PRMStarPersist",  //
+      [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::PRMStarPersist>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::PRM",      //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::PRM>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::PRM>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::PRMstar",  //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::PRMstar>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::PRMstar>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::FMT",      //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::FMT>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::FMT>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::BFMT",     //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::BFMT>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::BFMT>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::PDST",     //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::PDST>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::PDST>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::STRIDE",   //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::STRIDE>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::STRIDE>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::BiTRRT",   //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::BiTRRT>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::BiTRRT>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::LBTRRT",   //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::LBTRRT>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::LBTRRT>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::BiEST",    //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::BiEST>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::BiEST>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::ProjEST",  //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::ProjEST>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::ProjEST>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::LazyPRM",  //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::LazyPRM>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::LazyPRM>(si, new_name, spec);
+      });
   registerPlannerAllocator(      //
       "geometric::LazyPRMstar",  //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::LazyPRMstar>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::LazyPRMstar>(si, new_name, spec);
+      });
+  registerPlannerAllocator(         //
+      "geometric::LazyPRMPersist",  //
+      [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::LazyPRMPersist>(si, new_name, spec);
+      });
+  registerPlannerAllocator(             //
+      "geometric::LazyPRMStarPersist",  //
+      [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::LazyPRMStarPersist>(si, new_name, spec);
+      });
   registerPlannerAllocator(  //
       "geometric::SPARS",    //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::SPARS>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::SPARS>(si, new_name, spec);
+      });
   registerPlannerAllocator(   //
       "geometric::SPARStwo",  //
       [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec){return planner_allocator_.allocatePlanner<og::SPARStwo>(si, new_name, spec);});
+          const ModelBasedPlanningContextSpecification& spec) {
+        return planner_allocator_.allocatePlanner<og::SPARStwo>(si, new_name, spec);
+      });
 }
 
 void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
