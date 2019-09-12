@@ -83,6 +83,18 @@ public:
       if (planners_.count(new_name))
         return planners_.at(new_name);
 
+      // Certain multi-query planners allow loading and storing the generated planner data. This feature can be
+      // selectively enabled for loading and storing using the bool parameters 'load_planner_data' and
+      // 'store_planner_data'. The storage file path is set using the parameter 'planner_data_path'.
+      // File read and write access are handled by the PlannerDataStorage class. If the file path is invalid
+      // an error message is printed and the planner is constructed/destructed with default values.
+      it = cfg.find("load_planner_data");
+      bool load_planner_data = false;
+      if (it != cfg.end())
+      {
+        load_planner_data = boost::lexical_cast<bool>(it->second);
+        cfg.erase(it);
+      }
       it = cfg.find("store_planner_data");
       bool store_planner_data = false;
       if (it != cfg.end())
@@ -90,18 +102,21 @@ public:
         store_planner_data = boost::lexical_cast<bool>(it->second);
         cfg.erase(it);
       }
-      it = cfg.find("store_planner_data_path");
-      std::string store_planner_data_path;
+      it = cfg.find("planner_data_path");
+      std::string planner_data_path;
       if (it != cfg.end())
       {
-        store_planner_data_path = it->second;
+        planner_data_path = it->second;
         cfg.erase(it);
       }
-      planners_[new_name] = allocatePlannerImpl<T>(si, new_name, spec, store_planner_data, store_planner_data_path);
+      // Store planner instance for multi-query use
+      planners_[new_name] =
+          allocatePlannerImpl<T>(si, new_name, spec, load_planner_data, store_planner_data, planner_data_path);
       return planners_[new_name];
     }
     else
     {
+      // Return single-shot planner instance
       return allocatePlannerImpl<T>(si, new_name, spec);
     }
   }
@@ -110,18 +125,17 @@ private:
   template <typename T>
   ompl::base::PlannerPtr allocatePlannerImpl(const ob::SpaceInformationPtr& si, const std::string& new_name,
                                              const ModelBasedPlanningContextSpecification& spec,
-                                             bool load_planner_data = false, const std::string& file_path = "")
+                                             bool load_planner_data = false, bool store_planner_data = false,
+                                             const std::string& file_path = "")
   {
     ompl::base::PlannerPtr planner;
-    // Try to initialize planner with stored planner data
+    // Try to initialize planner with loaded planner data
     if (load_planner_data)
     {
       ROS_ERROR("Loading planner data");
       ompl::base::PlannerData data(si);
       storage_.load(file_path.c_str(), data);
       planner.reset(allocatePersistingPlanner<T>(data));
-      if (planner)
-        planner_data_storage_paths_[new_name] = file_path;
     }
     if (!planner)
       planner.reset(new T(si));
@@ -130,10 +144,13 @@ private:
     planner->params().setParams(spec.config_, true);
     planner->setProblemDefinition(std::make_shared<ob::ProblemDefinition>(si));
     planner->setup();
+    //  Remember which planner instances to store when the destructer is called
+    if (store_planner_data)
+      planner_data_storage_paths_[new_name] = file_path;
     return planner;
   }
 
-  // storing multi-query planners
+  // Storing multi-query planners
   std::map<std::string, ob::PlannerPtr> planners_;
 
   std::map<std::string, std::string> planner_data_storage_paths_;
