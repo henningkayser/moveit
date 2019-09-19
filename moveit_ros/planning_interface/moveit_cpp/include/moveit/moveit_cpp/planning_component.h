@@ -142,6 +142,11 @@ public:
    * after the execution is complete. The execution can be run in background by setting blocking to false. */
   bool execute(bool blocking = true);
 
+  /** \brief return pointer to const version of last planner solution */
+  PlanSolutionConstPtr getLastPlanSolution()
+  {
+    return last_plan_solution_;
+  }
 private:
   // Core properties and instances
   ros::NodeHandle nh_;
