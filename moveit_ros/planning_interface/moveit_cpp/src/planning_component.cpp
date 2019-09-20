@@ -219,6 +219,19 @@ void PlanningComponent::setStartState(const robot_state::RobotState& start_state
   considered_start_state_.reset(new robot_state::RobotState(start_state));
 }
 
+void PlanningComponent::setStartState(const std::string& named_state)
+{
+  const auto& named_targets = getNamedTargets();
+  if (std::find(named_targets.begin(), named_targets.end(), named_state) == named_targets.end())
+  {
+    ROS_ERROR_NAMED(LOGNAME, "No predefined joint state found for target name '%s'", named_state.c_str());
+    return;
+  }
+  robot_state::RobotState start_state(moveit_cpp_->getRobotModel());
+  start_state.setToDefaultValues(joint_model_group_.get(), named_state);
+  setStartState(start_state);
+}
+
 robot_state::RobotStatePtr PlanningComponent::getStartState()
 {
   if (considered_start_state_)

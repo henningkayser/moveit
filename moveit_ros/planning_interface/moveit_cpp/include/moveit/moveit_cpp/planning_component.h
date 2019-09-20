@@ -142,6 +142,17 @@ public:
    * after the execution is complete. The execution can be run in background by setting blocking to false. */
   bool execute(bool blocking = true);
 
+  /** \brief Return pointer to const version of last planner solution. */
+  PlanSolutionConstPtr getLastPlanSolution() const
+  {
+    return last_plan_solution_;
+  }
+
+  /** \brief Return pointer to const version of JointModelGroup used for planning. */
+  moveit::core::JointModelGroupConstPtr getJointModelGroup() const
+  {
+    return joint_model_group_;
+  }
 private:
   // Core properties and instances
   ros::NodeHandle nh_;
