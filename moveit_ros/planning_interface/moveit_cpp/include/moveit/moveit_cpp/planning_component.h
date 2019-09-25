@@ -42,6 +42,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit/robot_state/conversions.h>
+#include <moveit_msgs/MoveItErrorCodes.h>
 
 namespace moveit
 {
@@ -54,6 +55,35 @@ class PlanningComponent
 public:
   MOVEIT_STRUCT_FORWARD(PlanSolution);
 
+  class MoveItErrorCode : public moveit_msgs::MoveItErrorCodes
+  {
+  public:
+    MoveItErrorCode()
+    {
+      val = 0;
+    }
+    MoveItErrorCode(int code)
+    {
+      val = code;
+    }
+    MoveItErrorCode(const moveit_msgs::MoveItErrorCodes& code)
+    {
+      val = code.val;
+    }
+    explicit operator bool() const
+    {
+      return val == moveit_msgs::MoveItErrorCodes::SUCCESS;
+    }
+    bool operator==(const int c) const
+    {
+      return val == c;
+    }
+    bool operator!=(const int c) const
+    {
+      return val != c;
+    }
+  };
+
   /// The representation of a plan solution
   struct PlanSolution
   {
@@ -62,6 +92,14 @@ public:
 
     /// The trajectory of the robot (may not contain joints that are the same as for the start_state_)
     robot_trajectory::RobotTrajectoryPtr trajectory;
+
+    /// Error code
+    MoveItErrorCode error_code;
+
+    explicit operator bool() const
+    {
+      return bool(error_code);
+    }
   };
 
   /// Planner parameters provided with the MotionPlanRequest
@@ -133,21 +171,25 @@ public:
 
   /** \brief Run a plan from start or current state to fulfill the last goal constraints provided by setGoal() using
    * default parameters. */
-  bool plan();
+  PlanSolution plan();
   /** \brief Run a plan from start or current state to fulfill the last goal constraints provided by setGoal() using the
    * provided PlanRequestParameters. */
-  bool plan(const PlanRequestParameters& parameters);
+  PlanSolution plan(const PlanRequestParameters& parameters);
 
   /** \brief Execute the latest computed solution trajectory computed by plan(). By default this function terminates
    * after the execution is complete. The execution can be run in background by setting blocking to false. */
   bool execute(bool blocking = true);
+
+  /** \brief Return the last plan solution*/
+  const PlanSolutionPtr getLastPlanSolution();
 
 private:
   // Core properties and instances
   ros::NodeHandle nh_;
   MoveitCppPtr moveit_cpp_;
   const std::string group_name_;
-  moveit::core::JointModelGroupConstPtr joint_model_group_;
+  // The robot_model_ member variable of MoveItCpp class will manually free the joint_model_group_ resources
+  const moveit::core::JointModelGroup* joint_model_group_;
 
   // Planning
   std::set<std::string> planning_pipeline_names_;
