@@ -115,7 +115,7 @@ public:
 
   /** \brief Constructor */
   PlanningComponent(const std::string& group_name, const ros::NodeHandle& nh);
-  PlanningComponent(const std::string& group_name, const MoveitCppPtr& moveit_context);
+  PlanningComponent(const std::string& group_name, const MoveItCppPtr& moveit_context);
 
   /**
    * @brief This class owns unique resources (e.g. action clients, threads) and its not very
@@ -186,7 +186,7 @@ public:
 private:
   // Core properties and instances
   ros::NodeHandle nh_;
-  MoveitCppPtr moveit_cpp_;
+  MoveItCppPtr moveit_cpp_;
   const std::string group_name_;
   // The robot_model_ member variable of MoveItCpp class will manually free the joint_model_group_ resources
   const moveit::core::JointModelGroup* joint_model_group_;

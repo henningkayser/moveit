@@ -70,7 +70,7 @@ namespace planning_interface
 {
 constexpr char LOGNAME[] = "planning_component";
 
-PlanningComponent::PlanningComponent(const std::string& group_name, const MoveitCppPtr& moveit_context)
+PlanningComponent::PlanningComponent(const std::string& group_name, const MoveItCppPtr& moveit_context)
   : group_name_(group_name), nh_(moveit_context->getNodeHandle()), moveit_cpp_(moveit_context)
 {
   joint_model_group_ = moveit_cpp_->getRobotModel()->getJointModelGroup(group_name);
@@ -84,7 +84,7 @@ PlanningComponent::PlanningComponent(const std::string& group_name, const Moveit
 }
 
 PlanningComponent::PlanningComponent(const std::string& group_name, const ros::NodeHandle& nh)
-  : group_name_(group_name), nh_(nh), moveit_cpp_(new MoveitCpp(nh))
+  : group_name_(group_name), nh_(nh), moveit_cpp_(new MoveItCpp(nh))
 {
 }
 

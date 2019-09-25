@@ -47,12 +47,12 @@ namespace moveit
 {
 namespace planning_interface
 {
-MOVEIT_CLASS_FORWARD(MoveitCpp);
+MOVEIT_CLASS_FORWARD(MoveItCpp);
 
-class MoveitCpp
+class MoveItCpp
 {
 public:
-  /// Specification of options to use when constructing the MoveitCpp class
+  /// Specification of options to use when constructing the MoveItCpp class
   struct PlanningSceneMonitorOptions
   {
     void load(const ros::NodeHandle& nh)
@@ -104,7 +104,7 @@ public:
     double max_acceleration_scaling_factor;
   };
 
-  /// Parameter container for initializing MoveitCpp
+  /// Parameter container for initializing MoveItCpp
   struct Options
   {
     Options(const ros::NodeHandle& nh)
@@ -120,22 +120,22 @@ public:
   };
 
   /** \brief Constructor */
-  MoveitCpp(const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = {});
-  MoveitCpp(const Options& opt, const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = {});
+  MoveItCpp(const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = {});
+  MoveItCpp(const Options& opt, const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = {});
 
   /**
    * @brief This class owns unique resources (e.g. action clients, threads) and its not very
    * meaningful to copy. Pass by references, move it, or simply create multiple instances where
    * required.
    */
-  MoveitCpp(const MoveitCpp&) = delete;
-  MoveitCpp& operator=(const MoveitCpp&) = delete;
+  MoveItCpp(const MoveItCpp&) = delete;
+  MoveItCpp& operator=(const MoveItCpp&) = delete;
 
-  MoveitCpp(MoveitCpp&& other);
-  MoveitCpp& operator=(MoveitCpp&& other);
+  MoveItCpp(MoveItCpp&& other);
+  MoveItCpp& operator=(MoveItCpp&& other);
 
   /** \brief Destructor */
-  ~MoveitCpp();
+  ~MoveItCpp();
 
   /** \brief Get the RobotModel object. */
   robot_model::RobotModelConstPtr getRobotModel() const;

@@ -53,12 +53,12 @@ constexpr char LOGNAME[] = "moveit_cpp";
 constexpr char PLANNING_SCENE_MONITOR_NAME[] = "moveit_cpp_planning_scene";
 constexpr char PLANNING_PLUGIN_PARAM[] = "planning_plugin";
 
-MoveitCpp::MoveitCpp(const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
-  : MoveitCpp(Options(nh), nh, tf_buffer)
+MoveItCpp::MoveItCpp(const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
+  : MoveItCpp(Options(nh), nh, tf_buffer)
 {
 }
 
-MoveitCpp::MoveitCpp(const Options& opt, const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
+MoveItCpp::MoveItCpp(const Options& opt, const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
 {
   if (!tf_buffer_)
     tf_buffer_.reset(new tf2_ros::Buffer());
@@ -93,21 +93,21 @@ MoveitCpp::MoveitCpp(const Options& opt, const ros::NodeHandle& nh, const std::s
   trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(
       robot_model_, planning_scene_monitor_->getStateMonitor()));
 
-  ROS_INFO_NAMED(LOGNAME, "MoveitCpp running");
+  ROS_INFO_NAMED(LOGNAME, "MoveItCpp running");
 }
 
-MoveitCpp::MoveitCpp(MoveitCpp&& other)
+MoveItCpp::MoveItCpp(MoveItCpp&& other)
 {
   other.clearContents();
 }
 
-MoveitCpp::~MoveitCpp()
+MoveItCpp::~MoveItCpp()
 {
-  ROS_INFO_NAMED(LOGNAME, "Deleting MoveitCpp");
+  ROS_INFO_NAMED(LOGNAME, "Deleting MoveItCpp");
   clearContents();
 }
 
-MoveitCpp& MoveitCpp::operator=(MoveitCpp&& other)
+MoveItCpp& MoveItCpp::operator=(MoveItCpp&& other)
 {
   if (this != &other)
   {
@@ -122,7 +122,7 @@ MoveitCpp& MoveitCpp::operator=(MoveitCpp&& other)
   return *this;
 }
 
-bool MoveitCpp::loadPlanningSceneMonitor(const PlanningSceneMonitorOptions& opt)
+bool MoveItCpp::loadPlanningSceneMonitor(const PlanningSceneMonitorOptions& opt)
 {
   planning_scene_monitor_.reset(
       new planning_scene_monitor::PlanningSceneMonitor(opt.robot_description, tf_buffer_, opt.name));
@@ -156,7 +156,7 @@ bool MoveitCpp::loadPlanningSceneMonitor(const PlanningSceneMonitorOptions& opt)
   return true;
 }
 
-bool MoveitCpp::loadPlanningPipelines(const PlanningPipelineOptions& opt)
+bool MoveItCpp::loadPlanningPipelines(const PlanningPipelineOptions& opt)
 {
   ros::NodeHandle node_handle(opt.parent_namespace.empty() ? "~" : opt.parent_namespace);
   for (const auto& planning_pipeline_name : opt.pipeline_names)
@@ -206,19 +206,19 @@ bool MoveitCpp::loadPlanningPipelines(const PlanningPipelineOptions& opt)
   return true;
 }
 
-robot_model::RobotModelConstPtr MoveitCpp::getRobotModel() const
+robot_model::RobotModelConstPtr MoveItCpp::getRobotModel() const
 {
-  ROS_DEBUG_NAMED(LOGNAME, "MoveitCpp::getRobotModel()");
+  ROS_DEBUG_NAMED(LOGNAME, "MoveItCpp::getRobotModel()");
   return robot_model_;
 }
 
-const ros::NodeHandle& MoveitCpp::getNodeHandle() const
+const ros::NodeHandle& MoveItCpp::getNodeHandle() const
 {
-  ROS_DEBUG_NAMED(LOGNAME, "MoveitCpp::getNodeHandle()");
+  ROS_DEBUG_NAMED(LOGNAME, "MoveItCpp::getNodeHandle()");
   return node_handle_;
 }
 
-bool MoveitCpp::getCurrentState(robot_state::RobotStatePtr& current_state, double wait_seconds)
+bool MoveItCpp::getCurrentState(robot_state::RobotStatePtr& current_state, double wait_seconds)
 {
   if (wait_seconds > 0.0 &&
       !planning_scene_monitor_->getStateMonitor()->waitForCurrentState(ros::Time::now(), wait_seconds))
@@ -233,19 +233,19 @@ bool MoveitCpp::getCurrentState(robot_state::RobotStatePtr& current_state, doubl
   return true;
 }
 
-robot_state::RobotStatePtr MoveitCpp::getCurrentState(double wait)
+robot_state::RobotStatePtr MoveItCpp::getCurrentState(double wait)
 {
   robot_state::RobotStatePtr current_state;
   getCurrentState(current_state, wait);
   return current_state;
 }
 
-const std::map<std::string, planning_pipeline::PlanningPipelinePtr>& MoveitCpp::getPlanningPipelines() const
+const std::map<std::string, planning_pipeline::PlanningPipelinePtr>& MoveItCpp::getPlanningPipelines() const
 {
   return planning_pipelines_;
 }
 
-std::set<std::string> MoveitCpp::getPlanningPipelineNames(const std::string& group_name) const
+std::set<std::string> MoveItCpp::getPlanningPipelineNames(const std::string& group_name) const
 {
   std::set<std::string> result_names;
   if (!group_name.empty() && groups_pipelines_map_.count(group_name) == 0)
@@ -268,26 +268,26 @@ std::set<std::string> MoveitCpp::getPlanningPipelineNames(const std::string& gro
   return result_names;
 }
 
-const planning_scene_monitor::PlanningSceneMonitorPtr& MoveitCpp::getPlanningSceneMonitor() const
+const planning_scene_monitor::PlanningSceneMonitorPtr& MoveItCpp::getPlanningSceneMonitor() const
 {
   return planning_scene_monitor_;
 }
-planning_scene_monitor::PlanningSceneMonitorPtr MoveitCpp::getPlanningSceneMonitorNonConst()
+planning_scene_monitor::PlanningSceneMonitorPtr MoveItCpp::getPlanningSceneMonitorNonConst()
 {
   return planning_scene_monitor_;
 }
 
-const trajectory_execution_manager::TrajectoryExecutionManagerPtr& MoveitCpp::getTrajectoryExecutionManager() const
+const trajectory_execution_manager::TrajectoryExecutionManagerPtr& MoveItCpp::getTrajectoryExecutionManager() const
 {
   return trajectory_execution_manager_;
 }
 
-trajectory_execution_manager::TrajectoryExecutionManagerPtr MoveitCpp::getTrajectoryExecutionManagerNonConst()
+trajectory_execution_manager::TrajectoryExecutionManagerPtr MoveItCpp::getTrajectoryExecutionManagerNonConst()
 {
   return trajectory_execution_manager_;
 }
 
-bool MoveitCpp::execute(const std::string& group_name, const robot_trajectory::RobotTrajectoryPtr& robot_trajectory,
+bool MoveItCpp::execute(const std::string& group_name, const robot_trajectory::RobotTrajectoryPtr& robot_trajectory,
                         bool blocking)
 {
   if (!robot_trajectory)
@@ -316,12 +316,12 @@ bool MoveitCpp::execute(const std::string& group_name, const robot_trajectory::R
   return true;
 }
 
-const std::shared_ptr<tf2_ros::Buffer>& MoveitCpp::getTFBuffer() const
+const std::shared_ptr<tf2_ros::Buffer>& MoveItCpp::getTFBuffer() const
 {
   return tf_buffer_;
 }
 
-void MoveitCpp::clearContents()
+void MoveItCpp::clearContents()
 {
   robot_description_.clear();
   tf_buffer_.reset();
