@@ -218,9 +218,10 @@ PlanningComponent::PlanSolution PlanningComponent::plan()
   return plan(default_parameters);
 }
 
-void PlanningComponent::setStartState(const robot_state::RobotState& start_state)
+bool PlanningComponent::setStartState(const robot_state::RobotState& start_state)
 {
   considered_start_state_.reset(new robot_state::RobotState(start_state));
+  return true;
 }
 
 robot_state::RobotStatePtr PlanningComponent::getStartState()
@@ -233,6 +234,19 @@ robot_state::RobotStatePtr PlanningComponent::getStartState()
     moveit_cpp_->getCurrentState(s, 1.0);
     return s;
   }
+}
+
+bool PlanningComponent::setStartState(const std::string& start_state_name)
+{
+  const auto& named_targets = getNamedTargets();
+  if (std::find(named_targets.begin(), named_targets.end(), start_state_name) == named_targets.end())
+  {
+    ROS_ERROR_NAMED(LOGNAME, "No predefined joint state found for target name '%s'", start_state_name.c_str());
+    return false;
+  }
+  robot_state::RobotState start_state(moveit_cpp_->getRobotModel());
+  start_state.setToDefaultValues(joint_model_group_, start_state_name);
+  return setStartState(start_state);
 }
 
 void PlanningComponent::setStartStateToCurrentState()

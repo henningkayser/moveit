@@ -153,9 +153,9 @@ public:
   robot_state::RobotStatePtr getStartState();
 
   /** \brief Set the robot state that should be considered as start state for planning */
-  void setStartState(const robot_state::RobotState& start_state);
+  bool setStartState(const robot_state::RobotState& start_state);
   /** \brief Set the named robot state that should be considered as start state for planning */
-  void setStartState(const std::string& named_state);
+  bool setStartState(const std::string& named_state);
 
   /** \brief Set the start state for planning to be the current state of the robot */
   void setStartStateToCurrentState();
